@@ -2,6 +2,7 @@ const express = require("express");
 const sqlite = require("sqlite");
 const sqlite3 = require("sqlite3");
 const path = require("path");
+const { greetings } = require("./data/greetings");
 const app = express();
 const HTTP_PORT = process.env.PORT || 8080;
 
@@ -25,6 +26,18 @@ let db;
       tone TEXT NOT NULL
     )
   `);
+
+  // Seed data into the 'greetings' table
+  const count = (await db.all(`SELECT * FROM greetings`)).length;
+  if (count === 0) {
+    greetings.forEach(async (greeting) => {
+      const { timeOfDay, language, message, tone } = greeting;
+      await db.run(
+        `INSERT INTO greetings (timeOfDay, language, greetingMessage, tone) VALUES (?, ?, ?, ?)`,
+        [timeOfDay, language, message, tone]
+      );
+    });
+  }
 })();
 
 app.listen(HTTP_PORT, () => console.log(`Server listening on: ${HTTP_PORT}`));
