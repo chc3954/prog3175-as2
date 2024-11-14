@@ -2,6 +2,8 @@
 
 Name: Hyunchul Cho (8752831)
 
+Github Repo: https://github.com/chc3954/prog3175-as2
+
 ## To run this app
 
 1. Install the required dependencies: `npm install`
