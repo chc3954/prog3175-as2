@@ -1,43 +1,18 @@
 const express = require("express");
-const sqlite = require("sqlite");
-const sqlite3 = require("sqlite3");
-const path = require("path");
-const { greetings } = require("./data/greetings");
+const db = require("./data/database");
 const app = express();
 const HTTP_PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 
-// Open the SQLite database
-let db;
-(async () => {
-  db = await sqlite.open({
-    filename: "./data/database.db",
-    driver: sqlite3.Database,
+app.get("/api/languages", (req, res) => {
+  db.all(`SELECT DISTINCT language FROM greetings`, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: "Database error" });
+    } else {
+      res.json(rows.map((row) => row.language));
+    }
   });
-
-  // Create a 'greetings' table if it doesn't exist
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS greetings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timeOfDay TEXT NOT NULL,
-      language TEXT NOT NULL,
-      greetingMessage TEXT NOT NULL,
-      tone TEXT NOT NULL
-    )
-  `);
-
-  // Seed data into the 'greetings' table
-  const count = (await db.all(`SELECT * FROM greetings`)).length;
-  if (count === 0) {
-    greetings.forEach(async (greeting) => {
-      const { timeOfDay, language, message, tone } = greeting;
-      await db.run(
-        `INSERT INTO greetings (timeOfDay, language, greetingMessage, tone) VALUES (?, ?, ?, ?)`,
-        [timeOfDay, language, message, tone]
-      );
-    });
-  }
-})();
+});
 
 app.listen(HTTP_PORT, () => console.log(`Server listening on: ${HTTP_PORT}`));
